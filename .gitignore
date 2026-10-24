@@ -1,0 +1,4 @@
+node_modules/
+*.png
+out*.svg
+.DS_Store

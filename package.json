@@ -1,0 +1,14 @@
+{
+  "name": "pipeline-planner",
+  "version": "2026.10.23",
+  "private": true,
+  "description": "Padlófűtés nyomvonaltervező (egyfájlos webalkalmazás)",
+  "type": "module",
+  "scripts": {
+    "check": "node tests/check.mjs",
+    "test": "node tests/check.mjs && node tests/run.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^24.1.3"
+  }
+}

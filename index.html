@@ -203,7 +203,7 @@ ul.warns li.good{color:var(--ok);list-style:none;margin-left:-18px}
 
   <aside class="side">
     <h1>Padlófűtés nyomvonaltervező</h1>
-    <p class="sub" style="margin-bottom:2px">Verzió: 2026.10.23. 01:25</p>
+    <p class="sub" style="margin-bottom:2px">Verzió: 2026.10.26. 09:40</p>
     <details class="help" style="margin:0 16px 10px"><summary>Súgó</summary>
       <p class="note">Rendszerlemez 75×100 cm, csővezetés 12,5 cm-es rácson, Ø14 mm cső.</p>
       <p class="note">A rajzot görgetéssel mozgatod (Shift + görgetés: vízszintesen), Ctrl + görgetéssel nagyítasz. Szóközt nyomva tartva bármelyik eszközzel húzva mozgathatod; érintőképernyőn ujjal húzva.</p>
@@ -790,7 +790,7 @@ function render(){
       const free=p=>!st.rooms.some(r2_=>pipPoly(p,r2_.pts))&&!st.rooms.some(r2_=>distPoly(p,r2_.pts)<st.wallT+fs*0.4);
       const opts=[{x:cx,y:y0-g2,a:0},{x:cx,y:y1+g2+fs*0.3,a:0},{x:x0-g2,y:cy,a:-90},{x:x1+g2,y:cy,a:90}];
       const o2=opts.find(o=>free([o.x,o.y]))||opts[0];
-      h+=`<text x="${o2.x}" y="${o2.y}" font-size="${fs*1.05}" fill="var(--ink)" text-anchor="middle" dominant-baseline="middle" transform="rotate(${o2.a} ${o2.x} ${o2.y})" font-family="Barlow,sans-serif" font-weight="600">${esc(r.name)}</text>`;
+      h+=`<text x="${o2.x}" y="${o2.y}" font-size="${fs*0.72}" fill="var(--ink)" text-anchor="middle" dominant-baseline="middle" transform="rotate(${o2.a} ${o2.x} ${o2.y})" font-family="Barlow,sans-serif" font-weight="600">${esc(r.name)}</text>`;
       return;
     }
     const c=labelPt(R);
@@ -2434,7 +2434,7 @@ function buildPages(){
   const sc=Math.max(1,Math.ceil(Math.max(w*10/boxW,hh*10/boxH)));
   const wMM=w*10/sc, hMM=hh*10/sc, px=M+(boxW-wMM)/2, py=M+headH+(boxH-hMM)/2;
   const plan=`<svg x="${r2(px)}" y="${r2(py)}" width="${r2(wMM)}" height="${r2(hMM)}" viewBox="${minX} ${minY} ${w} ${hh}">${inner}</svg>`;
-  const legend=T(M,PH2-M-1,`M 1:${sc}. Kör jel: előremenő, négyzet: visszatérő. A nyilak a haladási irányt mutatják. Falméretek cm-ben (belső méret), zárójelben a fal mentén elférő csövek száma 12,5 cm-es raszterben.`,{fs:2.8,fill:'#5b6770'});
+  const legend=T(PW2-M,PH2-M-1,`M 1:${sc}`,{a:'r',fs:3.2,fill:'#5b6770'});
   const p2={svg:page(PW2,PH2,header(PW2,`M 1:${sc}, rács 12,5 cm`,2)+plan+legend),land,PW:PW2,PH:PH2};
   // --- 1. oldal: adatok ---
   const Anet=st.rooms.reduce((x,r)=>x+netArea(r.pts),0)/10000;
@@ -2450,7 +2450,13 @@ function buildPages(){
     rows:st.circuits.map((c,i)=>({c,i})).filter(x=>x.c.pts.length).map(({c,i})=>{ const P=portsOf(i,sm); return {sw:c.color,cells:[cut(c.name,18),cut(roomsOf(c),40),P?cut(P.m.name,18)+', '+(P.slot+1)+'.':'–',fmt(lens[i])+' m'],warn:lens[i]>st.maxLen}; })});
   blocks.push({t:'Helyiségek',cols:[[0,'l'],[0.44,'r'],[0.62,'r'],[0.82,'r'],[1,'r']],head:['Név','Bruttó','Nettó','Lemez állása','Lemez'],rows:st.rooms.map((r,i)=>({cells:[cut(r.name,34),fmt(polyArea(r.pts)/10000,2)+' m²',fmt(netArea(r.pts)/10000,2)+' m²',roomP[i].rot?'100×75':'75×100',roomP[i].n+' db']}))});
   if(st.mans.length) blocks.push({t:'Osztók',cols:[[0,'l'],[0.4,'l'],[1,'r']],head:['Név','Elhelyezés','Körök'],rows:st.mans.map((m,mi)=>({cells:[cut(m.name,30),(m.mount==='recessed'?'falba süllyesztve':'falon')+', '+fmt(m.w,0)+' cm',sm.filter(x=>x&&x.mi===mi).length+' / '+m.k]}))});
-  const PW1=210, PH1=297, dx=M, dW=PW1-2*M, dy=M+headH+2, dH=PH1-M-dy;
+  const PW1=210, PH1=297, dx=M, dW=PW1-2*M, dy=M+headH+2;
+  // magyarázó szöveg az 1. oldal alján, sortöréssel
+  const noteTxt='Kör jel: előremenő, négyzet: visszatérő. A nyilak a haladási irányt mutatják. Falméretek cm-ben (belső méret), zárójelben a fal mentén elférő csövek száma 12,5 cm-es raszterben.';
+  const noteFs=2.8, noteLH=4, perLine=Math.floor(dW/(noteFs*0.5)), noteLines=[]; let curL='';
+  for(const wd of noteTxt.split(' ')){ if(curL&&(curL+' '+wd).length>perLine){ noteLines.push(curL); curL=wd; } else curL=curL?curL+' '+wd:wd; }
+  if(curL) noteLines.push(curL);
+  const noteH=noteLines.length*noteLH+2, dH=PH1-M-noteH-dy;
   const rowsTotal=blocks.reduce((x,bl)=>x+bl.rows.length+(bl.head?1:0)+2,0);
   let LH=6.2; if(rowsTotal*LH>dH) LH=Math.max(3.2,dH/rowsTotal);
   const FS=LH*0.6; let out='', cy=dy;
@@ -2464,6 +2470,7 @@ function buildPages(){
     }
     cy+=LH*0.7;
   }
+  out+=noteLines.map((l,i)=>T(dx,PH1-M-noteH+2+noteLH*(i+0.8),l,{fs:noteFs,fill:'#5b6770'})).join('');
   const p1={svg:page(PW1,PH1,header(PW1,'',1)+out),land:false,PW:PW1,PH:PH1};
   return [p1,p2];
 }
